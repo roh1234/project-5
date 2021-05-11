@@ -7,6 +7,7 @@
 
 #include "simulation/simulation.h"
 #include <stdexcept>
+#include "flag_parser/flag_parser.h"
 
 Simulation::Simulation(FlagOptions& flags)
 {
@@ -24,17 +25,33 @@ void Simulation::run() {
 }
 
 char Simulation::perform_memory_access(const VirtualAddress& virtual_address) {
+        size_t time = 0;
+
     if (this->flags.verbose) {
         std::cout << virtual_address << std::endl;
+        
+        if (this->processes.at(virtual_address.process_id)->page_table.rows.at(virtual_address.page).present != true){
+        std::cout << "PAGE FAULT" << std::endl;
+        handle_page_fault(this->processes.at(virtual_address.process_id), 
+        this->processes.at(virtual_address.process_id)->page_table.rows.at(virtual_address.page).frame);
+       // std::cout << virtual_address << std::endl;
+        }else{
+            time++;
+        }
+        std::cout << time << std::endl;
     }
 
-    // TODO
+
 
     return 0;
 }
 
 void Simulation::handle_page_fault(Process* process, size_t page) {
-    // TODO: implement me
+    if (process->pages.size() < free_frames.size()){
+        
+        free_frames.begin() = process->page_table.rows[page];
+    }
+
 }
 
 void Simulation::print_summary() {
