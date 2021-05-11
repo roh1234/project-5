@@ -8,6 +8,9 @@
 #include "simulation/simulation.h"
 #include <stdexcept>
 #include "flag_parser/flag_parser.h"
+#include "frame/frame.h"
+
+
 
 Simulation::Simulation(FlagOptions& flags)
 {
@@ -28,17 +31,19 @@ char Simulation::perform_memory_access(const VirtualAddress& virtual_address) {
         size_t time = 0;
 
     if (this->flags.verbose) {
-        std::cout << virtual_address << std::endl;
+        std::cout << virtual_address << '\n';
         
         if (this->processes.at(virtual_address.process_id)->page_table.rows.at(virtual_address.page).present != true){
         std::cout << "PAGE FAULT" << std::endl;
         handle_page_fault(this->processes.at(virtual_address.process_id), 
         this->processes.at(virtual_address.process_id)->page_table.rows.at(virtual_address.page).frame);
-       // std::cout << virtual_address << std::endl;
+        std::cout << virtual_address << std::endl;
+        int offset = virtual_address.offset;
         }else{
             time++;
         }
-        std::cout << time << std::endl;
+        std::cout << "RSS " << time << '\n';
+        
     }
 
 
@@ -47,11 +52,17 @@ char Simulation::perform_memory_access(const VirtualAddress& virtual_address) {
 }
 
 void Simulation::handle_page_fault(Process* process, size_t page) {
-    if (process->pages.size() < free_frames.size()){
-        
-        free_frames.begin() = process->page_table.rows[page];
-    }
+    if (process->page_table.get_present_page_count() < process->page_table.rows.size()){
+       // process->page_table.rows   
 
+    }
+    if (this->flags.strategy == ReplacementStrategy::FIFO){
+        process->page_table.rows.at(process->page_table.get_oldest_page()).present = false;
+        process->page_table.rows[page].frame = page;        
+    }else{
+        process->page_table.rows.at(process->page_table.get_least_recently_used_page()).present = false;
+        process->page_table.rows[page].frame = page; 
+    }
 }
 
 void Simulation::print_summary() {
